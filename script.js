@@ -31,7 +31,10 @@ const processInfo = async () => {
     items = filterOldAuthors(items);
 
     console.log("fetched items after being sorted by ID, having their subjects converted to uppercase and entries with authors that havent existed in the last 200 years removed:");
-    console.log(items);
+    for(let currentItem = 0; currentItem<items.length; currentItem++){ //printed like this because printing the whole array doesnt show the contents of the objects
+        console.log(items[currentItem]);
+        console.log(",");
+    }
 
     await findFyodor(bookData);
 
