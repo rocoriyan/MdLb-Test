@@ -14,16 +14,34 @@ const processInfo = async () => {
     const bookData = await getAllBooks();
     let items = bookData.results;
     
-    items.sort((a, b)=> a.id - b.id); //sorting by id
+    //Arrays - sorting by id
+    items = sortItemsByID(items);
 
-    items.forEach(item => { //capitalising subjects
+    //Strings - capitalising subjects
+    items = capitaliseSubjects(items);
+
+    //Dates - remove entries whose authors have been confirmed to not exist in the past 200 years
+    items = filterOldAuthors(items);
+    
+};
+
+const sortItemsByID = (items) => {
+    items.sort((a, b)=> a.id - b.id);
+    return items;
+};
+
+const capitaliseSubjects = (items) => {
+    items.forEach(item => {
         let tempSubjects = (item.subjects).map((subject) => {
             return subject.toUpperCase();
         });
         item.subjects = tempSubjects;
     });
+    return items;
+};
 
-    items = items.filter((item) => { //remove entries whose authors have been confirmed to not exist in the past 200 years
+const filterOldAuthors = (items) => {
+    items = items.filter((item) => {
         currentYear = new Date().getFullYear();
         for(let curr = 0; curr< (item.authors).length ; curr++){ //for every author in the authors object. if a single author is confirmed to have last existed over 200 years ago, the entire entry will be filtered out
             //if we want to filter out authors with no confirmed birth or death dates, uncomment the below if statement
@@ -37,7 +55,8 @@ const processInfo = async () => {
             }
         }
         return true;
-    })
-};
+    });
+    return items;
+}
 
 processInfo();
