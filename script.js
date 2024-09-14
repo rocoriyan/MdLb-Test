@@ -1,5 +1,5 @@
-const getAllBooks = async () => {
-    const response = await fetch("https://gutendex.com/books");
+const getAllBooks = async (source) => {
+    const response = await fetch(source);
 
     if(!response.ok){
         throw new Error(`${response.error}`);
@@ -11,9 +11,16 @@ const getAllBooks = async () => {
 }
 
 const processInfo = async () => {
-    const bookData = await getAllBooks();
+    //Fetch from API
+    let bookData;
+    try{
+        bookData = await getAllBooks("https://gutendex.com/books");
+    }
+    catch(error){
+        console.log("Error: "+error);
+    }
     let items = bookData.results;
-    
+
     //Arrays - sorting by id
     items = sortItemsByID(items);
 
@@ -22,7 +29,13 @@ const processInfo = async () => {
 
     //Dates - remove entries whose authors have been confirmed to not exist in the past 200 years
     items = filterOldAuthors(items);
-    
+
+    console.log("fetched items after being sorted by ID, having their subjects converted to uppercase and entries with authors that havent existed in the last 200 years removed:");
+    console.log(items);
+
+    await findFyodor(bookData);
+
+    await findTheodor(bookData);
 };
 
 const sortItemsByID = (items) => {
@@ -57,6 +70,70 @@ const filterOldAuthors = (items) => {
         return true;
     });
     return items;
+}
+
+const findFyodor = async (books) => {
+    let targetBook = {
+        title:"Short Stories",
+        author:"Dostoyevsky, Fyodor"
+    }
+
+    let foundBook = await findBook(books, targetBook);
+    if(foundBook.error){
+        console.log("\n"+foundBook.error_message);
+    }
+    else{
+        console.log(`\nA book with the title "${targetBook.title}" and the author "${targetBook.author}" was found on page ${foundBook.page}:`);
+        console.log(foundBook.book);
+    }
+}
+
+const findTheodor = async (books) => {
+
+    let targetBook = {
+        title:"Short Stories",
+        author:"Dostoyevsky, Theodor"
+    }
+
+    let foundBook = await findBook(books, targetBook);
+    if(foundBook.error){
+        console.log("\n"+foundBook.error_message);
+    }
+    else{
+        console.log(`\nA book with the title "${targetBook.title}" and the author "${targetBook.author}" was found on page ${foundBook.page}:`);
+        console.log(foundBook.book);
+    }
+}
+
+const findBook = async (books, target) => {
+    console.log(`\nSearching for the book "${target.title}" by the author "${target.author}"`);
+    let targetBookInfo;
+    let morePages = true;
+    let page = 1;
+    while(morePages){
+        //console.log(" Searching page "+page+ "...");
+        let items = books.results;
+
+        for(let currBook = 0; currBook < items.length; currBook++){
+            for(let currAuthor = 0; currAuthor < ((items[currBook]).authors).length; currAuthor++){
+                if(((items[currBook]).authors[currAuthor]).name == target.author && (items[currBook]).title == target.title){
+                    targetBookInfo = items[currBook];
+                    return { error: false, book: targetBookInfo , page: page};
+                }
+            }
+        }
+
+        if(books.next == null){
+            return { error: true, error_message: `No book with the title "${target.title}" and the author "${target.author}" was found` }
+        }
+        page++;
+        try{
+            books = await getAllBooks(books.next);
+        }
+        catch(error){
+            console.log("Error: "+error);
+        }
+    }
 }
 
 processInfo();
