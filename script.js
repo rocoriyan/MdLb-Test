@@ -10,4 +10,10 @@ const getAllBooks = async () => {
     }
 }
 
-getAllBooks();
+const processInfo = async () => {
+    const bookData = await getAllBooks();
+    const items = bookData.results;
+    items.sort((a, b)=> a.id - b.id); //sorting by id
+};
+
+processInfo();
