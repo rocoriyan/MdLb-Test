@@ -57,8 +57,8 @@ const capitaliseSubjects = (items) => {
 };
 
 const filterOldAuthors = (items) => {
+    let currentYear = new Date().getFullYear();
     items = items.filter((item) => {
-        currentYear = new Date().getFullYear();
         for(let curr = 0; curr< (item.authors).length ; curr++){ //for every author in the authors object. if a single author is confirmed to have last existed over 200 years ago, the entire entry will be filtered out
             //if we want to filter out authors with no confirmed birth or death dates, uncomment the below if statement
             /*if(item.authors[curr].death_year == null && (item.authors[curr].birth_year == null || item.authors[curr].birth_year < currentYear-200)){
