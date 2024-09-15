@@ -2,7 +2,7 @@ const getAllBooks = async (source) => {
     const response = await fetch(source);
 
     if(!response.ok){
-        throw new Error(`${response.error}`);
+        throw new Error(`${response.status}`);
     }
     else{
         const data = await response.json();
@@ -12,33 +12,32 @@ const getAllBooks = async (source) => {
 
 const processInfo = async () => {
     //Fetch from API
-    let bookData;
     try{
-        bookData = await getAllBooks("https://gutendex.com/books");
+        let bookData = await getAllBooks("https://gutendex.com/books");
+        let items = bookData.results;
+    
+        //Arrays - sorting by id
+        items = sortItemsByID(items);
+    
+        //Strings - capitalising subjects
+        items = capitaliseSubjects(items);
+    
+        //Dates - remove entries whose authors have been confirmed to not exist in the past 200 years
+        items = filterOldAuthors(items);
+    
+        console.log("fetched items after being sorted by ID, having their subjects converted to uppercase and entries with authors that havent existed in the last 200 years removed:");
+        for(let currentItem = 0; currentItem<items.length; currentItem++){ //printed like this because printing the whole array doesnt show the contents of the objects
+            console.log(items[currentItem]);
+            console.log(",");
+        }
+    
+        await findFyodor(bookData);
+    
+        await findTheodor(bookData);
     }
     catch(error){
-        console.log("Error: "+error);
+        console.error(error);
     }
-    let items = bookData.results;
-
-    //Arrays - sorting by id
-    items = sortItemsByID(items);
-
-    //Strings - capitalising subjects
-    items = capitaliseSubjects(items);
-
-    //Dates - remove entries whose authors have been confirmed to not exist in the past 200 years
-    items = filterOldAuthors(items);
-
-    console.log("fetched items after being sorted by ID, having their subjects converted to uppercase and entries with authors that havent existed in the last 200 years removed:");
-    for(let currentItem = 0; currentItem<items.length; currentItem++){ //printed like this because printing the whole array doesnt show the contents of the objects
-        console.log(items[currentItem]);
-        console.log(",");
-    }
-
-    await findFyodor(bookData);
-
-    await findTheodor(bookData);
 };
 
 const sortItemsByID = (items) => {
