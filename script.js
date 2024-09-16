@@ -40,7 +40,7 @@ const processInfo = async () => {
     
         await findFyodor(bookData); //first I am searching for "Short Stories" by "Dostoyevsky, Fyodor", as this is in the database and we'll get an answer within a reasonable amount of time
     
-        await findTheodor(bookData); //next I am searching for "Short Stories" by "Dostoyevsky, Theodor", as this is the name requested to be searched for but will take a long time to determine that it's not there (there are many pages)
+        await findTheodor(bookData); //next I am searching for "Short Stories" by "Dostoyevsky, Theodor", as this is the name requested to be searched for but will take a while to determine that it's not there (there are many pages)
     }
     catch(error){
         console.error(error);
