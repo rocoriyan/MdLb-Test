@@ -11,24 +11,32 @@ const getAllBooks = async (source) => {
 }
 
 const processInfo = async () => {
-    //Fetch from API
     try{
+        //Fetch from API
         let bookData = await getAllBooks("https://gutendex.com/books");
         let items = bookData.results;
+
+        console.log("\nFetched items:\n");
+        printItemsInArray(items); //due to some issues with browser consoles, the subjects here may appear prematurely converted to uppercase. this is not correct
     
         //Arrays - sorting by id
-        items = sortItemsByID(items);
+        let sortedItems = sortItemsByID(items);
+
+        console.log("\n----------------------------------------\nItems after sorting by ID:\n");
+        printItemsInArray(sortedItems);
     
         //Strings - capitalising subjects
-        items = capitaliseSubjects(items);
+        let capitalisedItems = capitaliseSubjects(sortedItems);
+
+        console.log("\n----------------------------------------\nItems after converting subjects to uppercase:\n");
+        printItemsInArray(capitalisedItems);
     
         //Dates - remove entries whose authors have been confirmed to not exist in the past 200 years
-        items = filterOldAuthors(items);
-    
-        console.log("fetched items after being sorted by ID, having their subjects converted to uppercase and entries with authors that havent existed in the last 200 years removed:");
-        for(let currentItem = 0; currentItem<items.length; currentItem++){ //printed like this because printing the whole array doesnt show the contents of the objects
-            console.log(items[currentItem]);
-        }
+        let filteredItems = filterOldAuthors(capitalisedItems);
+
+        console.log("\n----------------------------------------\nItems after filtering old authors:\n");
+        printItemsInArray(filteredItems);
+        console.log(`\nPrevious book count: ${capitalisedItems.length}\nCurrent book count: ${filteredItems.length}`)
     
         await findFyodor(bookData);
     
@@ -39,38 +47,34 @@ const processInfo = async () => {
     }
 };
 
-const sortItemsByID = (items) => {
-    items.sort((a, b)=> a.id - b.id); //sort by id in ascending order
-    return items;
+const sortItemsByID = (itemsToSort) => {
+    itemsToSort.sort((a, b)=> a.id - b.id); //sort by id in ascending order
+    return itemsToSort;
 };
 
-const capitaliseSubjects = (items) => {
-    items.forEach(item => {
-        let tempSubjects = (item.subjects).map((subject) => {
+const capitaliseSubjects = (itemsToCapitalise) => {
+    itemsToCapitalise.forEach(itemToCapitalise => {
+        let tempSubjects = (itemToCapitalise.subjects).map((subject) => {
             return subject.toUpperCase();
         });
-        item.subjects = tempSubjects;
+        itemToCapitalise.subjects = tempSubjects;
     });
-    return items;
+    return itemsToCapitalise;
 };
 
-const filterOldAuthors = (items) => {
+const filterOldAuthors = (itemsToFilter) => {
     let currentYear = new Date().getFullYear();
-    items = items.filter((item) => {
-        for(let curr = 0; curr< (item.authors).length ; curr++){ //for every author in the authors object. if a single author is confirmed to have last existed over 200 years ago, the entire entry will be filtered out
-            //if we want to filter out authors with no confirmed birth or death dates, uncomment the below if statement
-            /*if(item.authors[curr].death_year == null && (item.authors[curr].birth_year == null || item.authors[curr].birth_year < currentYear-200)){
-                return false;
-            }*/ 
-            if(item.authors[curr].death_year != null){
-                if(item.authors[curr].death_year < currentYear-200){
+    itemsToFilter = itemsToFilter.filter((itemToFilter) => {
+        for(let curr = 0; curr< (itemToFilter.authors).length ; curr++){ //for every author in the authors object. if a single author is confirmed to have last existed over 200 years ago, the entire entry will be filtered out
+            if(itemToFilter.authors[curr].death_year != null){
+                if(itemToFilter.authors[curr].death_year < currentYear-200){
                     return false; //they died over 200 years before the current year, so they didn't exist in the past 200 years
                 }
             }
         }
         return true;
     });
-    return items;
+    return itemsToFilter;
 }
 
 const findFyodor = async (books) => {
@@ -107,18 +111,18 @@ const findTheodor = async (books) => {
 }
 
 const findBook = async (books, target) => {
-    console.log(`\nSearching for the book "${target.title}" by the author "${target.author}"`);
+    console.log(`\nSearching for the book "${target.title}" by the author "${target.author}"...`);
     let targetBookInfo;
     let morePages = true;
     let page = 1;
     while(morePages){
         //console.log(" Searching page "+page+ "...");
-        let items = books.results;
+        let results = books.results;
 
-        for(let currBook = 0; currBook < items.length; currBook++){
-            for(let currAuthor = 0; currAuthor < ((items[currBook]).authors).length; currAuthor++){
-                if(((items[currBook]).authors[currAuthor]).name == target.author && (items[currBook]).title == target.title){
-                    targetBookInfo = items[currBook];
+        for(let currBook = 0; currBook < results.length; currBook++){
+            for(let currAuthor = 0; currAuthor < ((results[currBook]).authors).length; currAuthor++){
+                if(((results[currBook]).authors[currAuthor]).name == target.author && (results[currBook]).title == target.title){
+                    targetBookInfo = results[currBook];
                     return { error: false, book: targetBookInfo , page: page};
                 }
             }
@@ -134,6 +138,12 @@ const findBook = async (books, target) => {
         catch(error){
             console.log("Error: "+error);
         }
+    }
+}
+
+const printItemsInArray = async (itemsToPrint) => {
+    for(let currentItem = 0; currentItem<itemsToPrint.length; currentItem++){
+        console.log(itemsToPrint[currentItem]);
     }
 }
 
