@@ -38,9 +38,9 @@ const processInfo = async () => {
         printItemsInArray(filteredItems);
         console.log(`\nPrevious book count: ${capitalisedItems.length}\nCurrent book count: ${filteredItems.length}`)
     
-        await findFyodor(bookData);
+        await findFyodor(bookData); //first I am searching for "Short Stories" by "Dostoyevsky, Fyodor", as this is in the database and we'll get an answer within a reasonable amount of time
     
-        await findTheodor(bookData);
+        await findTheodor(bookData); //next I am searching for "Short Stories" by "Dostoyevsky, Theodor", as this is the name requested to be searched for but will take a long time to determine that it's not there (there are many pages)
     }
     catch(error){
         console.error(error);
@@ -62,8 +62,8 @@ const capitaliseSubjects = (itemsToCapitalise) => {
     return itemsToCapitalise;
 };
 
-const filterOldAuthors = (itemsToFilter) => {
-    let currentYear = new Date().getFullYear();
+const filterOldAuthors = (itemsToFilter) => { // I've assumed that this means to filter out any books with any authors confirmed to not have existed in the past 200 years (e.g. we know they died over 200 years ago). I don't filter out books with authors with blank death years. I do exclude books if the have even 1 author that died before 200 years ago, evem if other authors of that book lived beyond that.
+    let currentYear = new Date().getFullYear(); //get the current year so this program doesnt become outdated in 1 year
     itemsToFilter = itemsToFilter.filter((itemToFilter) => {
         for(let curr = 0; curr< (itemToFilter.authors).length ; curr++){ //for every author in the authors object. if a single author is confirmed to have last existed over 200 years ago, the entire entry will be filtered out
             if(itemToFilter.authors[curr].death_year != null){
